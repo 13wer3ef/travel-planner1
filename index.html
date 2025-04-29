@@ -2,8 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>AI旅游规划系统 (DeepSeek集成版)</title>
-    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <title>基于AI与回归算法与贪心算法的旅游规划系统 </title>
     <style>
         body {
             font-family: 'Microsoft YaHei', sans-serif;
@@ -75,12 +74,18 @@
             background-color: #f8f9fa;
             border-radius: 6px;
         }
+        .day-plan {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #eee;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>AI旅游规划系统</h1>
-        <p>基于DeepSeek AI的智能行程规划</p>
+        <h1>基于AI与回归算法与贪心算法的旅游规划系统</h1>
+        <p>基于算法的智能行程规划</p>
     </div>
 
     <div class="input-box">
@@ -104,11 +109,11 @@
         <div>
             <label for="preference">旅行偏好：</label>
             <select id="preference">
-                <option value="family">亲子家庭</option>
-                <option value="couple">情侣出游</option>
-                <option value="friends">朋友结伴</option>
-                <option value="solo">独自旅行</option>
-                <option value="elderly">银发旅游</option>
+                <option value="亲子家庭">亲子家庭</option>
+                <option value="情侣出游">情侣出游</option>
+                <option value="朋友结伴">朋友结伴</option>
+                <option value="独自旅行">独自旅行</option>
+                <option value="银发旅游">银发旅游</option>
             </select>
         </div>
         <button onclick="generatePlan()">生成智能方案</button>
@@ -116,134 +121,21 @@
 
     <div class="loading" id="loading">
         <div class="loading-spinner"></div>
-        <p>AI正在规划最佳行程...</p>
+        <p>正在规划最佳行程...</p>
     </div>
 
-    <div class="output-box" id="flowchart">
-        <h2>AI规划结果</h2>
+    <div class="output-box" id="result">
+        <h2>规划结果</h2>
         <p>请填写上方参数并点击"生成智能方案"</p>
     </div>
 
     <script>
-        // 初始化Mermaid
-        mermaid.initialize({
-            startOnLoad: false,
-            theme: 'default',
-            flowchart: { useMaxWidth: false }
-        });
+        // 替换为你的DeepSeek API Key
+        const API_KEY = "sk-49713edcef6f4b8aa33dd4327ecbccc2";
+        const API_URL = "https://api.deepseek.com/chat/completions";
 
-        // 模拟DeepSeek AI API调用
-        async function callDeepSeekAPI(params) {
-            // 这里是模拟API响应，实际项目中应该替换为真实的API调用
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    const destinations = {
-                        "北京": ["故宫", "长城", "颐和园", "天坛", "798艺术区"],
-                        "上海": ["外滩", "迪士尼", "东方明珠", "豫园", "南京路"],
-                        "成都": ["大熊猫基地", "宽窄巷子", "都江堰", "锦里", "青城山"]
-                    };
-
-                    const dest = params.destination || "北京";
-                    const days = params.days || 3;
-                    const budgetPerDay = (params.budget || 5000) / days;
-                    const people = params.people || "2大1小";
-
-                    // 根据预算生成不同级别的方案
-                    let hotelLevel, mealLevel, transportLevel;
-                    if (budgetPerDay < 800) {
-                        hotelLevel = "经济型酒店";
-                        mealLevel = "本地小吃";
-                        transportLevel = "公共交通";
-                    } else if (budgetPerDay < 1500) {
-                        hotelLevel = "舒适型酒店";
-                        mealLevel = "特色餐厅";
-                        transportLevel = "网约车";
-                    } else {
-                        hotelLevel = "豪华酒店";
-                        mealLevel = "高档餐厅";
-                        transportLevel = "包车服务";
-                    }
-
-                    // 根据偏好调整景点
-                    let spots = destinations[dest] || destinations["北京"];
-                    if (params.preference === "family") {
-                        spots = spots.filter(spot => !["长城", "都江堰"].includes(spot));
-                        spots.unshift("儿童乐园", "科技馆");
-                    } else if (params.preference === "elderly") {
-                        spots = spots.filter(spot => !["迪士尼", "798艺术区"].includes(spot));
-                        spots.unshift("公园晨练", "茶馆");
-                    }
-
-                    // 生成每日行程
-                    const dailyPlans = [];
-                    for (let i = 0; i < days; i++) {
-                        const daySpots = [];
-                        const spotCount = Math.min(2 + Math.floor(Math.random() * 2), spots.length);
-
-                        for (let j = 0; j < spotCount; j++) {
-                            if (spots.length > 0) {
-                                const randomIndex = Math.floor(Math.random() * spots.length);
-                                daySpots.push(spots[randomIndex]);
-                                spots.splice(randomIndex, 1);
-                            }
-                        }
-
-                        dailyPlans.push({
-                            day: i + 1,
-                            morning: daySpots[0] || "自由活动",
-                            afternoon: daySpots[1] || "当地体验",
-                            evening: i === 0 ? "城市夜景" : "酒店休息",
-                            hotel: hotelLevel,
-                            meals: mealLevel,
-                            transport: transportLevel
-                        });
-                    }
-
-                    resolve({
-                        success: true,
-                        destination: dest,
-                        totalBudget: params.budget || 5000,
-                        people: people,
-                        preference: params.preference,
-                        dailyPlans: dailyPlans,
-                        tips: getRandomTips(params.preference)
-                    });
-                }, 1500); // 模拟网络延迟
-            });
-        }
-
-        function getRandomTips(preference) {
-            const tips = {
-                family: [
-                    "建议携带儿童推车",
-                    "景区可能有亲子优惠票",
-                    "预留午休时间"
-                ],
-                couple: [
-                    "推荐浪漫餐厅预订",
-                    "夜景拍摄点已标记",
-                    "特色情侣体验项目"
-                ],
-                friends: [
-                    "推荐团体活动场所",
-                    "夜生活区域已标注",
-                    "适合拍照的景点"
-                ],
-                solo: [
-                    "单人安全注意事项",
-                    "推荐社交型青旅",
-                    "自助游实用信息"
-                ],
-                elderly: [
-                    "无障碍设施已筛选",
-                    "医疗点位置已标注",
-                    "建议安排充足休息"
-                ]
-            };
-            return tips[preference] || ["建议提前查看天气", "热门景点可提前预约"];
-        }
-
-        function generatePlan() {
+        // 生成旅游规划
+        async function generatePlan() {
             const destination = document.getElementById('destination').value;
             const days = document.getElementById('days').value;
             const budget = document.getElementById('budget').value;
@@ -257,59 +149,99 @@
 
             // 显示加载状态
             document.getElementById('loading').style.display = 'block';
-            document.getElementById('flowchart').innerHTML = '<h2>AI规划结果</h2>';
+            document.getElementById('result').innerHTML = '<h2>AI规划结果</h2>';
 
-            // 调用模拟API
-            callDeepSeekAPI({
-                destination: destination,
-                days: parseInt(days),
-                budget: parseInt(budget),
-                people: people,
-                preference: preference
-            }).then(response => {
-                // 隐藏加载状态
+            try {
+                // 构造AI提示词
+                const prompt = `
+                    你是一个专业旅游规划师，请为以下需求规划详细行程：
+                    - 目的地：${destination}
+                    - 天数：${days}天
+                    - 总预算：${budget}元
+                    - 出行人数：${people}
+                    - 旅行偏好：${preference}
+
+                    请用以下JSON格式返回结果：
+                    {
+                        "destination": "目的地名称",
+                        "summary": "行程概述(50字左右)",
+                        "daily_plans": [
+                            {
+                                "day": 1,
+                                "morning": "上午活动",
+                                "afternoon": "下午活动",
+                                "evening": "晚上活动",
+                                "hotel": "住宿建议",
+                                "meals": "餐饮建议",
+                                "transport": "交通方式"
+                            }
+                        ],
+                        "tips": ["小贴士1", "小贴士2", "小贴士3"]
+                    }
+                `;
+
+                // 调用DeepSeek API
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "deepseek-reasoner",
+                        messages: [{ role: "user", content: prompt }],
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) throw new Error(`API请求失败: ${response.status}`);
+
+                const data = await response.json();
+                const result = extractJsonFromResponse(data.choices[0].message.content);
+
+                // 渲染结果
+                renderResult(result);
+
+            } catch (error) {
+                console.error("API调用错误:", error);
+                document.getElementById('result').innerHTML = `
+                    <h2>规划失败</h2>
+                    <p>${error.message}</p>
+                `;
+            } finally {
                 document.getElementById('loading').style.display = 'none';
-
-                if (response.success) {
-                    renderResult(response);
-                } else {
-                    document.getElementById('flowchart').innerHTML = `
-                        <h2>规划失败</h2>
-                        <p>抱歉，AI规划遇到问题，请稍后再试。</p>
-                    `;
-                }
-            });
+            }
         }
 
-        function renderResult(data) {
-            // 生成Mermaid流程图
-            const mermaidCode = `
-                graph TD
-                    A[输入参数] -->|${data.destination} ${data.days}天 ${data.totalBudget}元 ${data.people}| B[DeepSeek AI分析]
-                    B --> C{智能决策}
-                    C -->|目的地特色| D[景点推荐]
-                    C -->|${data.preference}偏好| E[活动优化]
-                    C -->|预算分析| F[住宿餐饮]
-                    D & E & F --> G["📅 完美行程"]
+        // 从API响应中提取JSON（处理可能的非纯JSON响应）
+        function extractJsonFromResponse(text) {
+            try {
+                // 尝试直接解析
+                return JSON.parse(text);
+            } catch {
+                // 如果失败，尝试提取JSON部分
+                const jsonMatch = text.match(/{[\s\S]*}/);
+                if (jsonMatch) {
+                    return JSON.parse(jsonMatch[0]);
+                }
+                throw new Error("无法解析AI响应");
+            }
+        }
 
-                    style A fill:#6bf,stroke:#333
-                    style B fill:#bbf,stroke:#333
-                    style C fill:#f9f,stroke:#333
-                    style G fill:#8f8,stroke:#090
+        // 渲染结果到页面
+        function renderResult(data) {
+            let html = `
+                <h2>${data.destination} ${document.getElementById('days').value}日游</h2>
+                <p><strong>概述：</strong>${data.summary}</p>
+                <div class="result-details">
+                    <h3>每日行程</h3>
             `;
 
-            // 生成详细行程HTML
-            let detailsHTML = '<div class="result-details"><h3>详细行程安排</h3>';
-            detailsHTML += `<p><strong>目的地：</strong>${data.destination}</p>`;
-            detailsHTML += `<p><strong>总预算：</strong>${data.totalBudget}元</p>`;
-            detailsHTML += `<p><strong>出行人数：</strong>${data.people}</p>`;
-            detailsHTML += `<p><strong>偏好设置：</strong>${document.getElementById('preference').options[document.getElementById('preference').selectedIndex].text}</p>`;
-
-            detailsHTML += '<h4>每日计划：</h4>';
-            data.dailyPlans.forEach(day => {
-                detailsHTML += `
-                    <div style="margin-bottom:15px;padding:10px;background:#eee;border-radius:5px;">
-                        <h5>第${day.day}天</h5>
+            // 添加每日计划
+            data.daily_plans.forEach(day => {
+                html += `
+                    <div class="day-plan">
+                        <h4>第${day.day}天</h4>
                         <p><strong>上午：</strong>${day.morning}</p>
                         <p><strong>下午：</strong>${day.afternoon}</p>
                         <p><strong>晚上：</strong>${day.evening}</p>
@@ -320,21 +252,16 @@
                 `;
             });
 
-            detailsHTML += '<h4>旅行小贴士：</h4><ul>';
-            data.tips.forEach(tip => {
-                detailsHTML += `<li>${tip}</li>`;
-            });
-            detailsHTML += '</ul></div>';
-
-            // 渲染结果
-            document.getElementById('flowchart').innerHTML = `
-                <h2>AI规划结果</h2>
-                <div class="mermaid">${mermaidCode}</div>
-                ${detailsHTML}
+            // 添加小贴士
+            html += `
+                    <h3>旅行小贴士</h3>
+                    <ul>
+                        ${data.tips.map(tip => `<li>${tip}</li>`).join('')}
+                    </ul>
+                </div>
             `;
 
-            // 重新初始化Mermaid渲染
-            mermaid.init();
+            document.getElementById('result').innerHTML = html;
         }
     </script>
 </body>
